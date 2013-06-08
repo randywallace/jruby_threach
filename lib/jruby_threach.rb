@@ -151,11 +151,11 @@ module Enumerable
   #   threading thing completely and just directly call the indicated iterator
   # @param [Symbol] iterator Which iterator to use (:each, :each_with_index, :each_line, 
   #   etc.). 
-  def threach(threads = 0, iterator = :each, &blk)
+  def threach(threads = 0, iterator = :each, *params, &blk)
     
     # With no extra threads, just spin up the passed iterator
     if threads == 0
-      self.send(iterator, &blk)
+      self.send(iterator, *params, &blk)
     else
       # Get a java BlockingQueue for the producer to dump stuff into
       bq = Threach::Queue.new(threads * 2) # capacity is twice the number of threads
@@ -234,7 +234,7 @@ module Enumerable
       # Start running the given iterator and try to push stuff
       
       begin
-        self.send(iterator) do |*x|
+        self.send(iterator, *params) do |*x|
           until successful_push = bq.push(x)
             # if we're in here, we got a timeout. Check for errors
             raise Threach::ThreachNotMyError.new, "bailing", nil if bail
